@@ -88,5 +88,19 @@ projection, never the spec.
   mid-tier session model. The final whole-branch review still runs on the most capable model:
   dispatch it with an explicit model, as the skill requires; prewalk does not override an explicit
   subagent model. This bridges file-based superpowers plans, not OMP's native `--plan` mode.
+- Subagent prewalk hazard (OMP ≤19.2.1, upstream #16385): `task.prewalk` / `task.agentPrewalk`
+  arm every `task` child unconditionally, and while armed a text-only turn gets "Continue task
+  now; do not end turn here." Only a workspace `edit`/`write` disarms — `agent://` writes, reads
+  and `todo` never disarms. A delegate whose deliverable IS text (reviewer, researcher, a
+  superpowers review or plan slice) therefore livelocks: answer → nudge → invented tool work →
+  answer, and the controller's `wait` never resolves. `prewalk.enabled: false` does NOT protect
+  subagents; that is a separate control path.
+- Mitigation for review/research delegates: pass an explicit per-call `model` in the task entry —
+  per-call-model spawns skip prewalk entirely. This is the same explicit-model dispatch the review
+  skills already require, so it both keeps the capable model and avoids the loop. To gate arming
+  globally instead, set `task.prewalk: false`, `task.agentPrewalk: {task: "off"}` and
+  `task.agentPrewalkAuto: {task: "on"}` (judge decides per assignment; implementation slices still
+  hand off at first edit). Diagnose a suspected loop by counting `prewalk-continue` entries in the
+  child transcript, never by the pane's progress percentage.
 - Subagents: dispatched children get their own todo preludes and track their own brief; the
   controller's todo mirrors the plan.

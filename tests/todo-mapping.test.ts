@@ -42,4 +42,10 @@ describe("plan/TDD -> todo workflow mapping", () => {
     expect(mapping).toMatch(/--prewalk/);
     expect(mapping).toMatch(/dispatch it with an explicit model/);
   });
+
+  test("warns that subagent prewalk livelocks text-returning delegates", () => {
+    expect(mapping).toMatch(/task\.prewalk/);
+    expect(mapping).toMatch(/per-call `model`/);
+    expect(mapping).toMatch(/never disarms/);
+  });
 });
